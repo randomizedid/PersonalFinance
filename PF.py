@@ -1,5 +1,10 @@
 #Personal Finance algorithms
 
+import matplotlib.pyplot as plt
+
+# Some functions can either have an S at the end or not. The difference is that functions with an S at the end graphically show what they are doing.
+# For example, the function 'sumCalc' takes arguments in and only prints the requested result, while the function sumCalcS also plots the two entities growing.
+
 # function that takes as input the base net worth that one wants to invest, the amount they can save each year, the interest rate (in decimals) and the time in years, and returns how much the net worth should be after those years, with and without the added interest (to have an understanding of how much the interest affects the total)
 def sumCalc(base, save, rate, time):
     base2 = 0
@@ -29,3 +34,39 @@ def timeToBroke(base, expense, rate):
         time +=1
 
     return time
+
+# Here are defined the graphical functions
+
+def sumCalcS(base, save, rate, time):
+    x, y, y2 = ([] for i in range(3))
+    base2 = base
+
+    for i in range(time):
+        
+        x.append(i)
+        base = base + save
+        base2 = base2 + save
+        y2.append(base2)
+        base = base + (base*rate)
+        y.append(base)
+
+    plt.plot(x, y)
+    plt.plot(x, y2)
+    plt.show()
+
+    return base, base2
+
+def timeToBrokeS(base, expense, rate):
+    x = [0]
+    y = [base]
+
+    while (base>0):
+        base = base-expense
+        base = base + (base*rate)
+        x.append(x[-1]+1)
+        y.append(base)
+
+    plt.plot(x, y)
+    plt.show()
+
+    return x[-1]
