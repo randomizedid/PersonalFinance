@@ -21,32 +21,40 @@ class MyPanel(wx.Panel):
     def __init__(self, parent):
         super(MyPanel, self).__init__(parent)
 
-        wrapper = wx.BoxSizer(wx.VERTICAL)
+        # The wrapper is the main sizer we will use to create every separated part of our GUI
+        wrapper = wx.BoxSizer(wx.HORIZONTAL)
+
+        # The insert sizer is the container of the insertion form, followed by all the forms
         insert_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label = "Insertion"), wx.VERTICAL)
+        # A name entry
         self.name = wx.StaticText(self, label = "Name")
         self.name_entry = wx.TextCtrl(self, size = (120,20))
-
-        # It's the time for a radio button that tracks whether the cash is flowing in (revenue) or out (expense)
+        # A radio button to declare whether the cash is flowing in or our (with his own sizer for the horizontal alignment)
         self.flow_type = wx.StaticText(self, label = "Flow Type")
         radio_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.flow_in_rb = wx.RadioButton(self, label = "In", style = wx.RB_GROUP)
         self.flow_out_rb = wx.RadioButton(self, label = "Out") 
-
+        # A transaction type entry
         self.type_text = wx.StaticText(self, label = "Transaction Type")
         self.combo = wx.ComboBox(self, choices = type_list)
-
+        # A transaction description entry
         self.description_text = wx.StaticText(self, label = "Transaction Description")
         self.description_entry = wx.TextCtrl(self, size = (120,40))
-
+        # An amount entry
         self.amount_text = wx.StaticText(self, label = "Expense Amount")
         self.amount_entry = wx.TextCtrl(self, size = (40, 20))
-
+        # A date entry
+        self.date_text = wx.StaticText(self, label = "Date (Y-M-D)")
+        self.date_entry = wx.TextCtrl(self, size = (80, 20))
+        # The confirm and insert button
         self.confirm_btn = wx.Button(self, label = "Confirm and Insert")
         self.confirm_btn.Bind(wx.EVT_BUTTON, self.onInsertClick)
 
-        self.date_text = wx.StaticText(self, label = "Date (Y-M-D)")
-        self.date_entry = wx.TextCtrl(self, size = (80, 20))
+        # This second sizer is used to provide the networth of the database
+        networth_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label = "Networth"), wx.VERTICAL)
+        self.networth_text = wx.StaticText(self, label = "Your networth is: {} €".format(self.getNetworth()))
 
+        # Let's add all the insertion items to the wrapper
         wrapper.Add(insert_sizer, flag = wx.ALL | wx.CENTER, border = 10)
         insert_sizer.Add(self.name, flag = wx.ALL | wx.CENTER, border = 2)
         insert_sizer.Add(self.name_entry, flag = wx.ALL | wx.CENTER, border = 2)
@@ -64,8 +72,14 @@ class MyPanel(wx.Panel):
         insert_sizer.Add(self.date_entry, flag = wx.ALL | wx.CENTER, border = 2)
         insert_sizer.Add(self.confirm_btn, flag = wx.ALL | wx.CENTER, border = 2)
 
+        # Let's add all the networth items to the wrapper
+        wrapper.Add(networth_sizer, flag = wx.ALL |wx.CENTER, border = 10)
+        networth_sizer.Add(self.networth_text, flag = wx.ALL |wx.CENTER, border = 10)
+
+        # Initialize the wrapper
         self.SetSizer(wrapper)
     
+    # Methods of the class Panel
     def onCombo(self):
         return self.combo.GetValue()
 
@@ -102,6 +116,18 @@ class MyPanel(wx.Panel):
         # Insert values in the database
         c.execute("INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?)".format(table_name), values)
 
+    def getNetworth(self):
+        networth = 0
+        c.execute("SELECT * FROM {}".format(table_name))
+        for item in c.fetchall():
+            if item[1] == 0:
+                print(item[4])
+                networth = networth + item[4]
+            else:
+                networth = networth - item[4]
+
+        return networth
+
 # Generic functions definition
 def checkIfTableExists(c, table_name):
     c.execute("SELECT count(name) FROM sqlite_master WHERE TYPE = 'table' AND name = '{}'".format(table_name))
@@ -111,7 +137,6 @@ def checkIfTableExists(c, table_name):
     else:
         return False
 
-# Still have to add a date field (also in the GUI)
 def createTable(c, table_name):
     c.execute("""CREATE TABLE {} ( 
         name text,
