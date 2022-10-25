@@ -1,6 +1,7 @@
 # This software is a GUI connected to a database for expense management
 import sqlite3
 import wx
+from datetime import datetime
 
 # Now let's implement the basic GUI in wxpython
 class MyFrame(wx.Frame):
@@ -43,6 +44,9 @@ class MyPanel(wx.Panel):
         self.confirm_btn = wx.Button(self, label = "Confirm and Insert")
         self.confirm_btn.Bind(wx.EVT_BUTTON, self.onInsertClick)
 
+        self.date_text = wx.StaticText(self, label = "Date (Y-M-D)")
+        self.date_entry = wx.TextCtrl(self, size = (80, 20))
+
         wrapper.Add(insert_sizer, flag = wx.ALL | wx.CENTER, border = 10)
         insert_sizer.Add(self.name, flag = wx.ALL | wx.CENTER, border = 2)
         insert_sizer.Add(self.name_entry, flag = wx.ALL | wx.CENTER, border = 2)
@@ -56,7 +60,10 @@ class MyPanel(wx.Panel):
         insert_sizer.Add(self.description_entry, flag = wx.ALL | wx.CENTER, border = 2)
         insert_sizer.Add(self.amount_text, flag = wx.ALL | wx.CENTER, border = 2)
         insert_sizer.Add(self.amount_entry, flag = wx.ALL | wx.CENTER, border = 2)
+        insert_sizer.Add(self.date_text, flag = wx.ALL | wx.CENTER, border = 2)
+        insert_sizer.Add(self.date_entry, flag = wx.ALL | wx.CENTER, border = 2)
         insert_sizer.Add(self.confirm_btn, flag = wx.ALL | wx.CENTER, border = 2)
+
         self.SetSizer(wrapper)
     
     def onCombo(self):
@@ -76,6 +83,9 @@ class MyPanel(wx.Panel):
 
     def checkAmount(self):
         return self.amount_entry.GetValue()
+    
+    def checkDate(self):
+        return self.date_entry.GetValue()
 
     def onInsertClick(self, evt):
         # Check input values and store them into values list 
@@ -84,10 +94,13 @@ class MyPanel(wx.Panel):
         name = MyPanel.checkName(self)
         description = MyPanel.checkDescription(self)
         amount = MyPanel.checkAmount(self)
-        values = [name, inout, transaction_type, description, amount]
+        date = MyPanel.checkDate(self)
+        if date == "":
+            date = datetime.today().strftime('%Y-%m-%d')
+        values = [name, inout, transaction_type, description, amount, date]
 
         # Insert values in the database
-        c.execute("INSERT INTO {} VALUES (?, ?, ?, ?, ?)".format(table_name), values)
+        c.execute("INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?)".format(table_name), values)
 
 # Generic functions definition
 def checkIfTableExists(c, table_name):
@@ -105,7 +118,8 @@ def createTable(c, table_name):
         inout NULL,
         type text,
         description text,
-        amount real
+        amount real,
+        date text
     )""".format(table_name))
 
 # Let's connect to the database, or create one if it doesn't exist (same with the cashflow table)
