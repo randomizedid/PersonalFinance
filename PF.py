@@ -35,6 +35,12 @@ def timeToBroke(base, expense, rate):
 
     return time
 
+# function that takes as input the base salary, the yearly prospected raise (in decimals) and the number of years, and returns the final salary 
+def salaryGrowth(base, rate, years):
+    for i in range(years):
+         base *= (1+rate)
+    return base
+
 # Here are defined the graphical functions
 
 def sumCalcS(base, save, rate, time):
